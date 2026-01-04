@@ -78,7 +78,9 @@ def paste_back(temp_vision_frame : VisionFrame, crop_vision_frame : VisionFrame,
 	inverse_matrix = cv2.invertAffineTransform(affine_matrix)
 	temp_size = temp_vision_frame.shape[:2][::-1]
 	inverse_mask = cv2.warpAffine(crop_mask, inverse_matrix, temp_size).clip(0, 1)
+	cv2.imwrite("inverse_mask.png", inverse_mask*255)
 	inverse_vision_frame = cv2.warpAffine(crop_vision_frame, inverse_matrix, temp_size, borderMode = cv2.BORDER_REPLICATE)
+	cv2.imwrite("inverse_vision_frame.png", inverse_vision_frame)
 	paste_vision_frame = temp_vision_frame.copy()
 	paste_vision_frame[:, :, 0] = inverse_mask * inverse_vision_frame[:, :, 0] + (1 - inverse_mask) * temp_vision_frame[:, :, 0]
 	paste_vision_frame[:, :, 1] = inverse_mask * inverse_vision_frame[:, :, 1] + (1 - inverse_mask) * temp_vision_frame[:, :, 1]

@@ -370,7 +370,7 @@ def post_process() -> None:
 		face_masker.clear_inference_pool()
 		face_recognizer.clear_inference_pool()
 
-
+import cv2
 def swap_face(source_face : Face, target_face : Face, temp_vision_frame : VisionFrame) -> VisionFrame:
 	model_template = get_model_options().get('template')
 	model_size = get_model_options().get('size')
@@ -383,13 +383,16 @@ def swap_face(source_face : Face, target_face : Face, temp_vision_frame : Vision
 	if 'box' in state_manager.get_item('face_mask_types'):
 		box_mask = create_static_box_mask(crop_vision_frame.shape[:2][::-1], state_manager.get_item('face_mask_blur'), state_manager.get_item('face_mask_padding'))
 		crop_masks.append(box_mask)
+		cv2.imwrite("box_mask.png", box_mask*255)
 
 	if 'occlusion' in state_manager.get_item('face_mask_types'):
 		occlusion_mask = create_occlusion_mask(crop_vision_frame)
 		crop_masks.append(occlusion_mask)
-
+		cv2.imwrite("occlusion_mask.png", occlusion_mask*255)
+	cv2.imwrite("crop_vision_frame-before.png", crop_vision_frame)
 	pixel_boost_vision_frames = implode_pixel_boost(crop_vision_frame, pixel_boost_total, model_size)
 	for pixel_boost_vision_frame in pixel_boost_vision_frames:
+		cv2.imwrite("pixel_boost_vision_frame.png", pixel_boost_vision_frame)
 		pixel_boost_vision_frame = prepare_crop_frame(pixel_boost_vision_frame)
 		pixel_boost_vision_frame = forward_swap_face(source_face, pixel_boost_vision_frame)
 		pixel_boost_vision_frame = normalize_crop_frame(pixel_boost_vision_frame)
@@ -401,6 +404,8 @@ def swap_face(source_face : Face, target_face : Face, temp_vision_frame : Vision
 		crop_masks.append(region_mask)
 
 	crop_mask = numpy.minimum.reduce(crop_masks).clip(0, 1)
+	cv2.imwrite("crop_vision_frame.png", crop_vision_frame)
+	cv2.imwrite("crop_mask_reduce.png", crop_mask*255)
 	temp_vision_frame = paste_back(temp_vision_frame, crop_vision_frame, crop_mask, affine_matrix)
 	return temp_vision_frame
 
